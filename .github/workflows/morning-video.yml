@@ -1,0 +1,43 @@
+name: 朝の動画投稿
+
+on:
+  schedule:
+    # 毎日 JST 7:00 (UTC 22:00 前日) に実行
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+jobs:
+  post-morning-video:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.js セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 依存関係インストール
+        run: npm ci
+
+      - name: 環境変数設定
+        run: |
+          echo "YOUTUBE_CLIENT_ID=${{ secrets.YOUTUBE_CLIENT_ID }}" >> .env
+          echo "YOUTUBE_CLIENT_SECRET=${{ secrets.YOUTUBE_CLIENT_SECRET }}" >> .env
+          echo "YOUTUBE_REFRESH_TOKEN=${{ secrets.YOUTUBE_REFRESH_TOKEN }}" >> .env
+          echo "OUTPUT_DIR=./output" >> .env
+
+      - name: 朝の動画をレンダリング
+        run: npm run render:morning
+
+      - name: YouTubeにアップロード
+        run: npm run upload:youtube -- --type morning
+
+      - name: 動画IDを保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: morning-video-id
+          path: .env

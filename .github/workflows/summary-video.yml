@@ -1,0 +1,54 @@
+name: まとめ動画投稿
+
+on:
+  schedule:
+    # 毎日 JST 23:30 (UTC 14:30) に実行
+    - cron: '30 14 * * *'
+  workflow_dispatch:
+
+env:
+  MORNING_VIDEO_ID: ${{ vars.MORNING_VIDEO_ID }}
+  NIGHT_VIDEO_ID: ${{ vars.NIGHT_VIDEO_ID }}
+
+jobs:
+  post-summary-video:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.js セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 依存関係インストール
+        run: npm ci
+
+      - name: 環境変数設定
+        run: |
+          echo "YOUTUBE_CLIENT_ID=${{ secrets.YOUTUBE_CLIENT_ID }}" >> .env
+          echo "YOUTUBE_CLIENT_SECRET=${{ secrets.YOUTUBE_CLIENT_SECRET }}" >> .env
+          echo "YOUTUBE_REFRESH_TOKEN=${{ secrets.YOUTUBE_REFRESH_TOKEN }}" >> .env
+          echo "MORNING_VIDEO_ID=${{ vars.MORNING_VIDEO_ID }}" >> .env
+          echo "NIGHT_VIDEO_ID=${{ vars.NIGHT_VIDEO_ID }}" >> .env
+          echo "OUTPUT_DIR=./output" >> .env
+
+      - name: コメントを取得
+        run: npm run fetch:comments
+
+      - name: まとめ動画をレンダリング
+        run: npm run render:summary
+
+      - name: YouTubeにアップロード
+        run: npm run upload:youtube -- --type summary
+
+      - name: コメントデータを保存
+        uses: actions/upload-artifact@v4
+        with:
+          name: summary-data
+          path: |
+            output/comments_*.json
+            output/summary_*.mp4

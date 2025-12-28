@@ -1,0 +1,33 @@
+{
+  "name": "ganbaru-video-generator",
+  "version": "1.0.0",
+  "description": "毎日の頑張りを共有するインタラクティブ動画自動生成システム",
+  "type": "module",
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion render",
+    "render:morning": "node scripts/render-morning.js",
+    "render:night": "node scripts/render-night.js",
+    "render:summary": "node scripts/render-summary.js",
+    "fetch:comments": "node scripts/fetch-comments.js",
+    "upload:youtube": "node scripts/upload-youtube.js",
+    "daily:morning": "npm run render:morning && npm run upload:youtube -- --type morning",
+    "daily:night": "npm run render:night && npm run upload:youtube -- --type night",
+    "daily:summary": "npm run fetch:comments && npm run render:summary && npm run upload:youtube -- --type summary"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.0",
+    "@remotion/cli": "^4.0.0",
+    "@remotion/renderer": "^4.0.0",
+    "googleapis": "^128.0.0",
+    "remotion": "^4.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "date-fns": "^3.0.0",
+    "dotenv": "^16.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "typescript": "^5.0.0"
+  }
+}
