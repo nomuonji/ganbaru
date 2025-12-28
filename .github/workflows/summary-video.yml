@@ -6,9 +6,8 @@ on:
     - cron: '30 14 * * *'
   workflow_dispatch:
 
-env:
-  MORNING_VIDEO_ID: ${{ vars.MORNING_VIDEO_ID }}
-  NIGHT_VIDEO_ID: ${{ vars.NIGHT_VIDEO_ID }}
+permissions:
+  contents: write
 
 jobs:
   post-summary-video:
@@ -32,8 +31,6 @@ jobs:
           echo "YOUTUBE_CLIENT_ID=${{ secrets.YOUTUBE_CLIENT_ID }}" >> .env
           echo "YOUTUBE_CLIENT_SECRET=${{ secrets.YOUTUBE_CLIENT_SECRET }}" >> .env
           echo "YOUTUBE_REFRESH_TOKEN=${{ secrets.YOUTUBE_REFRESH_TOKEN }}" >> .env
-          echo "MORNING_VIDEO_ID=${{ vars.MORNING_VIDEO_ID }}" >> .env
-          echo "NIGHT_VIDEO_ID=${{ vars.NIGHT_VIDEO_ID }}" >> .env
           echo "OUTPUT_DIR=./output" >> .env
 
       - name: コメントを取得
@@ -44,6 +41,14 @@ jobs:
 
       - name: YouTubeにアップロード
         run: npm run upload:youtube -- --type summary
+
+      - name: ステータスファイルをコミット
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/video-status.json
+          git diff --staged --quiet || git commit -m "📹 Update video status: summary $(date +%Y-%m-%d)"
+          git push
 
       - name: コメントデータを保存
         uses: actions/upload-artifact@v4

@@ -2,9 +2,12 @@ name: 夜の動画投稿
 
 on:
   schedule:
-    # 毎日 JST 21:00 (UTC 12:00) に実行
-    - cron: '0 12 * * *'
+    # 毎日 JST 19:00 (UTC 10:00) に実行
+    - cron: '0 10 * * *'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   post-night-video:
@@ -34,10 +37,13 @@ jobs:
         run: npm run render:night
 
       - name: YouTubeにアップロード
+        id: upload
         run: npm run upload:youtube -- --type night
 
-      - name: 動画IDを保存
-        uses: actions/upload-artifact@v4
-        with:
-          name: night-video-id
-          path: .env
+      - name: ステータスファイルをコミット
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/video-status.json
+          git diff --staged --quiet || git commit -m "📹 Update video status: night $(date +%Y-%m-%d)"
+          git push

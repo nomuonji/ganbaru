@@ -6,6 +6,7 @@ import path from "path";
 dotenv.config();
 
 const youtube = google.youtube("v3");
+const STATUS_FILE = "./data/video-status.json";
 
 // OAuth2クライアントの設定
 function getAuthClient() {
@@ -20,6 +21,18 @@ function getAuthClient() {
     });
 
     return oauth2Client;
+}
+
+// ステータスファイルから動画IDを取得
+function getVideoIdsFromStatus() {
+    if (fs.existsSync(STATUS_FILE)) {
+        const status = JSON.parse(fs.readFileSync(STATUS_FILE, "utf-8"));
+        return {
+            morningVideoId: status.videos?.morning?.videoId || null,
+            nightVideoId: status.videos?.night?.videoId || null,
+        };
+    }
+    return { morningVideoId: null, nightVideoId: null };
 }
 
 // 動画のコメントを取得
@@ -72,6 +85,7 @@ function mergeComments(morningComments, nightComments) {
             morningGoal: comment.content,
             nightAchievement: undefined,
             avatarColor: generateAvatarColor(comment.userId),
+            avatarUrl: comment.avatarUrl,
         });
     }
 
@@ -80,6 +94,10 @@ function mergeComments(morningComments, nightComments) {
         const existing = userMap.get(comment.userId);
         if (existing) {
             existing.nightAchievement = comment.content;
+            // 夜のアバターURLがあれば更新
+            if (comment.avatarUrl) {
+                existing.avatarUrl = comment.avatarUrl;
+            }
         } else {
             userMap.set(comment.userId, {
                 username: comment.username,
@@ -87,6 +105,7 @@ function mergeComments(morningComments, nightComments) {
                 morningGoal: undefined,
                 nightAchievement: comment.content,
                 avatarColor: generateAvatarColor(comment.userId),
+                avatarUrl: comment.avatarUrl,
             });
         }
     }
@@ -106,15 +125,24 @@ function mergeComments(morningComments, nightComments) {
 
 // メイン処理
 async function main() {
-    const morningVideoId = process.env.MORNING_VIDEO_ID;
-    const nightVideoId = process.env.NIGHT_VIDEO_ID;
+    // まずステータスファイルから動画IDを取得、なければ環境変数から
+    let { morningVideoId, nightVideoId } = getVideoIdsFromStatus();
+
+    // 環境変数でオーバーライド可能
+    morningVideoId = process.env.MORNING_VIDEO_ID || morningVideoId;
+    nightVideoId = process.env.NIGHT_VIDEO_ID || nightVideoId;
 
     if (!morningVideoId || !nightVideoId) {
-        console.error("MORNING_VIDEO_ID と NIGHT_VIDEO_ID を.envに設定してください");
+        console.error("動画IDが見つかりません。");
+        console.error("data/video-status.json に動画がアップロードされているか確認してください。");
+        console.error("または環境変数 MORNING_VIDEO_ID, NIGHT_VIDEO_ID を設定してください。");
         process.exit(1);
     }
 
-    console.log("朝の動画からコメントを取得中...");
+    console.log(`朝の動画ID: ${morningVideoId}`);
+    console.log(`夜の動画ID: ${nightVideoId}`);
+
+    console.log("\n朝の動画からコメントを取得中...");
     const morningComments = await fetchVideoComments(morningVideoId);
     console.log(`  ${morningComments.length}件のコメントを取得`);
 
@@ -138,6 +166,8 @@ async function main() {
 
     fs.writeFileSync(outputPath, JSON.stringify({
         date: today,
+        morningVideoId,
+        nightVideoId,
         comments: mergedComments,
         stats: {
             totalUsers: mergedComments.length,

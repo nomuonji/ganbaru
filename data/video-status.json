@@ -1,0 +1,21 @@
+{
+    "lastUpdated": null,
+    "videos": {
+        "morning": {
+            "videoId": null,
+            "date": null,
+            "uploadedAt": null
+        },
+        "night": {
+            "videoId": null,
+            "date": null,
+            "uploadedAt": null
+        },
+        "summary": {
+            "videoId": null,
+            "date": null,
+            "uploadedAt": null
+        }
+    },
+    "history": []
+}

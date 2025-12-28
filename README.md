@@ -5,7 +5,7 @@
 ## 🌟 コンセプト
 
 1. **朝の動画** (7:00投稿) - 「今日の目標は？」をコメントで募集
-2. **夜の動画** (21:00投稿) - 「今日できたことは？」をコメントで募集
+2. **夜の動画** (19:00投稿) - 「今日できたことは？」をコメントで募集
 3. **まとめ動画** (23:30投稿) - 両方の動画のコメントをマージして、キャラクターアニメーションで紹介
 
 ## 🚀 機能
@@ -36,6 +36,8 @@ ganbaru/
 │   ├── render-night.js       # 夜動画レンダリング
 │   ├── render-summary.js     # まとめ動画レンダリング
 │   └── upload-youtube.js     # YouTube投稿
+├── data/
+│   └── video-status.json     # 動画ステータス管理（公開可）
 ├── .github/workflows/
 │   ├── morning-video.yml     # 朝の自動投稿
 │   ├── night-video.yml       # 夜の自動投稿
@@ -51,7 +53,7 @@ ganbaru/
 npm install
 ```
 
-### 2. 環境変数の設定
+### 2. 環境変数の設定（ローカル開発用）
 
 `.env.example` をコピーして `.env` を作成し、YouTube API認証情報を設定:
 
@@ -70,7 +72,26 @@ YOUTUBE_REFRESH_TOKEN=your_refresh_token
 1. [Google Cloud Console](https://console.cloud.google.com/) でプロジェクトを作成
 2. YouTube Data API v3 を有効化
 3. OAuth 2.0 クライアントIDを作成
-4. リフレッシュトークンを取得
+4. [OAuth Playground](https://developers.google.com/oauthplayground) でリフレッシュトークンを取得
+
+## 🔒 セキュリティ
+
+このリポジトリは**公開リポジトリ**として安全に運用できます。
+
+### 秘密情報の管理
+
+| 項目 | 保存場所 | 公開可否 |
+|------|---------|---------|
+| Client ID | GitHub Secrets | ❌ 非公開 |
+| Client Secret | GitHub Secrets | ❌ 非公開 |
+| Refresh Token | GitHub Secrets | ❌ 非公開 |
+| 動画ID | `data/video-status.json` | ✅ 公開可 |
+| 投稿履歴 | `data/video-status.json` | ✅ 公開可 |
+
+### .gitignore で保護されるファイル
+
+- `.env` - ローカルの認証情報
+- `output/` - レンダリングされた動画
 
 ## 🎬 使い方
 
@@ -108,14 +129,21 @@ npm run upload:youtube -- --type summary
 
 リポジトリの Settings > Secrets and variables > Actions で以下を設定:
 
-### Secrets
-- `YOUTUBE_CLIENT_ID`
-- `YOUTUBE_CLIENT_SECRET`
-- `YOUTUBE_REFRESH_TOKEN`
+### Secrets（必須）
 
-### Variables
-- `MORNING_VIDEO_ID` - 朝の動画ID（まとめ動画用）
-- `NIGHT_VIDEO_ID` - 夜の動画ID（まとめ動画用）
+| 名前 | 説明 |
+|-----|------|
+| `YOUTUBE_CLIENT_ID` | Google Cloud OAuth Client ID |
+| `YOUTUBE_CLIENT_SECRET` | Google Cloud OAuth Client Secret |
+| `YOUTUBE_REFRESH_TOKEN` | OAuth 2.0 リフレッシュトークン |
+
+### 自動投稿スケジュール
+
+| ワークフロー | 時刻 (JST) | 内容 |
+|------------|-----------|------|
+| morning-video.yml | 07:00 | 朝の動画投稿 |
+| night-video.yml | 19:00 | 夜の動画投稿 |
+| summary-video.yml | 23:30 | まとめ動画投稿 |
 
 ## 🎨 カスタマイズ
 
@@ -136,7 +164,7 @@ npm run upload:youtube -- --type summary
 ```
 07:00 ─── 朝の動画投稿 ───┐
                          │ ユーザーがコメント
-21:00 ─── 夜の動画投稿 ───┤
+19:00 ─── 夜の動画投稿 ───┤
                          │ ユーザーがコメント
 23:30 ─── まとめ動画投稿 ─┘
           └── 朝と夜のコメントをマージ

@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const youtube = google.youtube("v3");
+const STATUS_FILE = "./data/video-status.json";
 
 // OAuth2クライアントの設定
 function getAuthClient() {
@@ -22,6 +23,32 @@ function getAuthClient() {
     return oauth2Client;
 }
 
+// ステータスファイルを読み込む
+function loadStatus() {
+    if (fs.existsSync(STATUS_FILE)) {
+        return JSON.parse(fs.readFileSync(STATUS_FILE, "utf-8"));
+    }
+    return {
+        lastUpdated: null,
+        videos: {
+            morning: { videoId: null, date: null, uploadedAt: null },
+            night: { videoId: null, date: null, uploadedAt: null },
+            summary: { videoId: null, date: null, uploadedAt: null },
+        },
+        history: [],
+    };
+}
+
+// ステータスファイルを保存
+function saveStatus(status) {
+    // dataディレクトリがなければ作成
+    const dataDir = path.dirname(STATUS_FILE);
+    if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+    }
+    fs.writeFileSync(STATUS_FILE, JSON.stringify(status, null, 2) + "\n");
+}
+
 // 動画タイプの設定
 const VIDEO_CONFIGS = {
     morning: {
@@ -33,8 +60,8 @@ const VIDEO_CONFIGS = {
 小さな目標でもOK！
 みんなで共有して、一緒に頑張りましょう！
 
-#今日の頑張り #毎日投稿 #モチベーション`,
-        tags: ["今日の頑張り", "モチベーション", "目標", "毎日投稿", "頑張る"],
+#今日の頑張り #毎日投稿 #モチベーション #shorts`,
+        tags: ["今日の頑張り", "モチベーション", "目標", "毎日投稿", "頑張る", "shorts"],
         categoryId: "22", // People & Blogs
     },
     night: {
@@ -46,8 +73,8 @@ const VIDEO_CONFIGS = {
 どんな小さなことでも、自分を褒めてあげよう！
 みんなの頑張りを見て、明日も頑張れる！
 
-#今日の頑張り #毎日投稿 #振り返り #お疲れ様`,
-        tags: ["今日の頑張り", "振り返り", "お疲れ様", "毎日投稿", "頑張った"],
+#今日の頑張り #毎日投稿 #振り返り #お疲れ様 #shorts`,
+        tags: ["今日の頑張り", "振り返り", "お疲れ様", "毎日投稿", "頑張った", "shorts"],
         categoryId: "22",
     },
     summary: {
@@ -146,23 +173,44 @@ async function main() {
         console.log(`動画ID: ${result.id}`);
         console.log(`URL: https://www.youtube.com/watch?v=${result.id}`);
 
-        // 動画IDを環境変数ファイルに保存（次回のコメント取得用）
-        const envPath = path.resolve(".env");
-        let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, "utf-8") : "";
+        // ステータスファイルに動画IDを保存
+        const status = loadStatus();
+        const now = new Date().toISOString();
 
-        if (type === "morning") {
-            envContent = envContent.replace(/MORNING_VIDEO_ID=.*\n?/, "");
-            envContent += `\nMORNING_VIDEO_ID=${result.id}`;
-        } else if (type === "night") {
-            envContent = envContent.replace(/NIGHT_VIDEO_ID=.*\n?/, "");
-            envContent += `\nNIGHT_VIDEO_ID=${result.id}`;
+        // 現在の動画情報を更新
+        status.videos[type] = {
+            videoId: result.id,
+            date: today,
+            uploadedAt: now,
+        };
+        status.lastUpdated = now;
+
+        // 履歴に追加（最新100件まで保持）
+        status.history.unshift({
+            type,
+            videoId: result.id,
+            date: today,
+            uploadedAt: now,
+            title: result.snippet?.title || null,
+        });
+        if (status.history.length > 100) {
+            status.history = status.history.slice(0, 100);
         }
 
-        fs.writeFileSync(envPath, envContent.trim() + "\n");
-        console.log("動画IDを.envに保存しました");
+        saveStatus(status);
+        console.log("動画IDをステータスファイルに保存しました");
+
+        // GitHub Actions用に出力
+        if (process.env.GITHUB_OUTPUT) {
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `video_id=${result.id}\n`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `video_url=https://www.youtube.com/watch?v=${result.id}\n`);
+        }
 
     } catch (error) {
         console.error("アップロードエラー:", error.message);
+        if (error.response) {
+            console.error("詳細:", JSON.stringify(error.response.data, null, 2));
+        }
         process.exit(1);
     }
 }
