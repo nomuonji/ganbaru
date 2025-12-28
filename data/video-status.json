@@ -1,21 +1,29 @@
 {
-    "lastUpdated": null,
-    "videos": {
-        "morning": {
-            "videoId": null,
-            "date": null,
-            "uploadedAt": null
-        },
-        "night": {
-            "videoId": null,
-            "date": null,
-            "uploadedAt": null
-        },
-        "summary": {
-            "videoId": null,
-            "date": null,
-            "uploadedAt": null
-        }
+  "lastUpdated": "2025-12-28T23:10:28.041Z",
+  "videos": {
+    "morning": {
+      "videoId": "x3hKe_01zts",
+      "date": "2025-12-28",
+      "uploadedAt": "2025-12-28T23:10:28.041Z"
     },
-    "history": []
+    "night": {
+      "videoId": null,
+      "date": null,
+      "uploadedAt": null
+    },
+    "summary": {
+      "videoId": null,
+      "date": null,
+      "uploadedAt": null
+    }
+  },
+  "history": [
+    {
+      "type": "morning",
+      "videoId": "x3hKe_01zts",
+      "date": "2025-12-28",
+      "uploadedAt": "2025-12-28T23:10:28.041Z",
+      "title": "【2025年12月28日】おはよう！今日の目標は？🌅"
+    }
+  ]
 }
