@@ -2,6 +2,7 @@ import { google } from "googleapis";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
+import { getJSTDate } from "./utils/date.js";
 
 dotenv.config();
 
@@ -63,6 +64,17 @@ const VIDEO_CONFIGS = {
 #今日の頑張り #毎日投稿 #モチベーション #shorts`,
         tags: ["今日の頑張り", "モチベーション", "目標", "毎日投稿", "頑張る", "shorts"],
         categoryId: "22", // People & Blogs
+        // 説明コメント
+        pinnedComment: `📢 このチャンネルについて
+
+🌅 毎朝7時に「今日の目標」を募集！
+🌙 毎晩19時に「今日できたこと」を募集！
+✨ 毎晩23時半に、コメントしてくれた方をキャラクターでまとめ動画に紹介！
+
+💬 コメントで今日の目標を宣言してみましょう！
+小さなことでもOK。みんなで応援しあいましょう🎉
+
+⚠️ コメントいただいた方は、まとめ動画でアイコン・お名前が紹介される場合があります`,
     },
     night: {
         title: (date) => `【${date}】おつかれさま！今日できたことは？🌙`,
@@ -76,6 +88,17 @@ const VIDEO_CONFIGS = {
 #今日の頑張り #毎日投稿 #振り返り #お疲れ様 #shorts`,
         tags: ["今日の頑張り", "振り返り", "お疲れ様", "毎日投稿", "頑張った", "shorts"],
         categoryId: "22",
+        // 説明コメント
+        pinnedComment: `📢 このチャンネルについて
+
+🌅 毎朝7時に「今日の目標」を募集！
+🌙 毎晩19時に「今日できたこと」を募集！
+✨ 毎晩23時半に、コメントしてくれた方をキャラクターでまとめ動画に紹介！
+
+💬 今日できたことをコメントで教えてください！
+どんな小さなことでも、自分を褒めてあげましょう✨
+
+⚠️ コメントいただいた方は、まとめ動画でアイコン・お名前が紹介される場合があります`,
     },
     summary: {
         title: (date) => `【${date}】みんなの今日の頑張り✨`,
@@ -89,8 +112,39 @@ const VIDEO_CONFIGS = {
 #今日の頑張り #みんなの頑張り #コミュニティ #毎日投稿`,
         tags: ["今日の頑張り", "みんなの頑張り", "コミュニティ", "まとめ", "毎日投稿"],
         categoryId: "22",
+        // まとめ動画にはコメントしない
+        pinnedComment: null,
     },
 };
+
+// 動画にコメントを投稿
+async function postComment(videoId, commentText) {
+    const auth = getAuthClient();
+
+    try {
+        const response = await youtube.commentThreads.insert({
+            auth,
+            part: ["snippet"],
+            requestBody: {
+                snippet: {
+                    videoId: videoId,
+                    topLevelComment: {
+                        snippet: {
+                            textOriginal: commentText,
+                        },
+                    },
+                },
+            },
+        });
+
+        console.log(`コメントを投稿しました: ${response.data.id}`);
+        return response.data;
+    } catch (error) {
+        console.error("コメント投稿エラー:", error.message);
+        // コメント投稿失敗は致命的ではないので続行
+        return null;
+    }
+}
 
 async function uploadVideo(videoPath, type, date) {
     const auth = getAuthClient();
@@ -143,7 +197,9 @@ async function main() {
     }
 
     const type = args[typeIndex + 1];
-    const today = new Date().toISOString().split("T")[0];
+    const today = getJSTDate();
+    console.log(`日付 (JST): ${today}`);
+
     const outputDir = process.env.OUTPUT_DIR || "./output";
 
     let videoPath;
@@ -172,6 +228,15 @@ async function main() {
         console.log("アップロード成功！");
         console.log(`動画ID: ${result.id}`);
         console.log(`URL: https://www.youtube.com/watch?v=${result.id}`);
+
+        // 説明コメントを投稿（設定されている場合のみ）
+        const config = VIDEO_CONFIGS[type];
+        if (config.pinnedComment) {
+            console.log("\n説明コメントを投稿中...");
+            // 少し待ってから投稿（動画の処理完了を待つ）
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            await postComment(result.id, config.pinnedComment);
+        }
 
         // ステータスファイルに動画IDを保存
         const status = loadStatus();

@@ -2,6 +2,7 @@ import { google } from "googleapis";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
+import { getJSTDate } from "./utils/date.js";
 
 dotenv.config();
 
@@ -161,7 +162,8 @@ async function main() {
     }
 
     // 今日の日付でファイル保存
-    const today = new Date().toISOString().split("T")[0];
+    const today = getJSTDate();
+    console.log(`日付 (JST): ${today}`);
     const outputPath = path.join(outputDir, `comments_${today}.json`);
 
     fs.writeFileSync(outputPath, JSON.stringify({

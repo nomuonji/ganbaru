@@ -3,13 +3,16 @@ import { renderMedia, selectComposition } from "@remotion/renderer";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import { getJSTDate } from "./utils/date.js";
 
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getJSTDate();
+    console.log(`日付 (JST): ${today}`);
+
     const outputDir = process.env.OUTPUT_DIR || "./output";
     const outputPath = path.join(outputDir, `night_${today}.mp4`);
 

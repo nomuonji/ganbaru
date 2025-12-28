@@ -4,13 +4,16 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import { getJSTDate } from "./utils/date.js";
 
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getJSTDate();
+    console.log(`日付 (JST): ${today}`);
+
     const outputDir = process.env.OUTPUT_DIR || "./output";
     const commentsPath = path.join(outputDir, `comments_${today}.json`);
     const outputPath = path.join(outputDir, `summary_${today}.mp4`);
