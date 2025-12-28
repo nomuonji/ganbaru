@@ -1,7 +1,9 @@
 import { Composition } from "remotion";
+import { z } from "zod";
 import { MorningVideo } from "./videos/MorningVideo";
 import { NightVideo } from "./videos/NightVideo";
-import { SummaryVideo } from "./videos/SummaryVideo";
+import { SummaryVideo, UserComment } from "./videos/SummaryVideo";
+import { sampleComments } from "./data/sampleComments";
 
 // ショート動画の設定（縦長 9:16）
 const SHORT_VIDEO_CONFIG = {
@@ -16,8 +18,51 @@ const SUMMARY_VIDEO_CONFIG = {
     width: 1920,
     height: 1080,
     fps: 30,
-    durationInFrames: 30 * 60, // 60秒（動的に調整可能）
 };
+
+// 今日の日付
+const today = new Date().toISOString().split("T")[0];
+
+// 両方コメントしたユーザーを優先でソート
+const sortedComments: UserComment[] = [...sampleComments].sort((a, b) => {
+    const aHasBoth = a.morningGoal && a.nightAchievement;
+    const bHasBoth = b.morningGoal && b.nightAchievement;
+    if (aHasBoth && !bHasBoth) return -1;
+    if (!aHasBoth && bHasBoth) return 1;
+    return 0;
+});
+
+// まとめ動画の長さを計算
+const calculateSummaryDuration = (commentsCount: number) => {
+    const fps = 30;
+    const introFrames = fps * 4; // イントロ4秒
+    const perUserFrames = fps * 6; // ユーザーあたり6秒
+    const listViewFrames = fps * 5; // 一覧表示5秒
+    const outroFrames = fps * 4; // エンディング4秒
+    return introFrames + commentsCount * perUserFrames + listViewFrames + outroFrames;
+};
+
+// スキーマ定義
+const morningVideoSchema = z.object({
+    date: z.string(),
+});
+
+const nightVideoSchema = z.object({
+    date: z.string(),
+});
+
+const userCommentSchema = z.object({
+    username: z.string(),
+    userId: z.string(),
+    morningGoal: z.string().optional(),
+    nightAchievement: z.string().optional(),
+    avatarColor: z.string(),
+});
+
+const summaryVideoSchema = z.object({
+    date: z.string(),
+    comments: z.array(userCommentSchema),
+});
 
 export const RemotionRoot: React.FC = () => {
     return (
@@ -26,9 +71,10 @@ export const RemotionRoot: React.FC = () => {
             <Composition
                 id="MorningVideo"
                 component={MorningVideo}
+                schema={morningVideoSchema}
                 {...SHORT_VIDEO_CONFIG}
                 defaultProps={{
-                    date: new Date().toISOString().split("T")[0],
+                    date: today,
                 }}
             />
 
@@ -36,31 +82,36 @@ export const RemotionRoot: React.FC = () => {
             <Composition
                 id="NightVideo"
                 component={NightVideo}
+                schema={nightVideoSchema}
                 {...SHORT_VIDEO_CONFIG}
                 defaultProps={{
-                    date: new Date().toISOString().split("T")[0],
+                    date: today,
                 }}
             />
 
-            {/* まとめ動画 - ユーザーのコメントをアニメーション表示 */}
+            {/* まとめ動画 - サンプルデータでプレビュー */}
             <Composition
                 id="SummaryVideo"
                 component={SummaryVideo}
+                schema={summaryVideoSchema}
                 {...SUMMARY_VIDEO_CONFIG}
+                durationInFrames={calculateSummaryDuration(sortedComments.length)}
                 defaultProps={{
-                    date: new Date().toISOString().split("T")[0],
-                    comments: [],
+                    date: today,
+                    comments: sortedComments,
                 }}
-                calculateMetadata={async ({ props }) => {
-                    // コメント数に応じて動画の長さを調整
-                    const commentsCount = props.comments?.length || 0;
-                    const baseDuration = 30 * 10; // 最低10秒
-                    const perCommentDuration = 30 * 5; // コメントあたり5秒
-                    const durationInFrames = Math.max(
-                        baseDuration,
-                        baseDuration + commentsCount * perCommentDuration
-                    );
-                    return { durationInFrames };
+            />
+
+            {/* まとめ動画（少人数版） - 3人のみでテスト */}
+            <Composition
+                id="SummaryVideo-Short"
+                component={SummaryVideo}
+                schema={summaryVideoSchema}
+                {...SUMMARY_VIDEO_CONFIG}
+                durationInFrames={calculateSummaryDuration(3)}
+                defaultProps={{
+                    date: today,
+                    comments: sortedComments.slice(0, 3),
                 }}
             />
         </>
