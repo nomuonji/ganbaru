@@ -1,6 +1,7 @@
 import React from "react";
 import {
     AbsoluteFill,
+    Audio,
     interpolate,
     useCurrentFrame,
     useVideoConfig,
@@ -8,6 +9,7 @@ import {
 } from "remotion";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import { selectChillBgm } from "../utils/bgm";
 
 interface PromotionalSummaryVideoProps {
     date: string;
@@ -64,6 +66,9 @@ export const PromotionalSummaryVideo: React.FC<PromotionalSummaryVideoProps> = (
             config: { damping: 12, stiffness: 100 },
         });
 
+    // BGM選択（日付をシードにしてランダム）
+    const bgmSrc = selectChillBgm(date);
+
     return (
         <AbsoluteFill
             style={{
@@ -71,6 +76,9 @@ export const PromotionalSummaryVideo: React.FC<PromotionalSummaryVideoProps> = (
                 fontFamily: "'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif",
             }}
         >
+            {/* BGM */}
+            <Audio src={bgmSrc} volume={0.2} />
+
             {/* 背景パーティクル */}
             {particles.map((p, i) => (
                 <div

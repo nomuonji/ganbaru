@@ -1,6 +1,7 @@
 import React from "react";
 import {
     AbsoluteFill,
+    Audio,
     interpolate,
     useCurrentFrame,
     useVideoConfig,
@@ -8,6 +9,7 @@ import {
 } from "remotion";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import { selectPopBgm } from "../utils/bgm";
 
 interface MorningVideoProps {
     date: string;
@@ -46,14 +48,36 @@ export const MorningVideo: React.FC<MorningVideoProps> = ({ date }) => {
     // 背景グラデーションアニメーション
     const gradientAngle = interpolate(frame, [0, durationInFrames], [135, 225]);
 
+    // 雲のふわふわアニメーション
+    const cloudFloat1 = Math.sin(frame * 0.03) * 8;
+    const cloudFloat2 = Math.sin(frame * 0.025 + 1) * 10;
+    const cloudFloat3 = Math.sin(frame * 0.035 + 2) * 6;
+
+    // 太陽の輝きアニメーション
+    const sunGlow = interpolate(frame % 120, [0, 60, 120], [0.8, 1, 0.8]);
+
+    // BGM選択（日付をシードにしてランダム）
+    const bgmSrc = selectPopBgm(date);
+
+    // 雲の配置
+    const clouds = [
+        { top: 12, left: 5, width: 180, float: cloudFloat1, opacity: 0.9 },
+        { top: 25, left: 70, width: 150, float: cloudFloat2, opacity: 0.8 },
+        { top: 45, left: -5, width: 200, float: cloudFloat3, opacity: 0.7 },
+        { top: 60, left: 80, width: 160, float: cloudFloat1, opacity: 0.85 },
+        { top: 75, left: 25, width: 140, float: cloudFloat2, opacity: 0.75 },
+    ];
+
     return (
         <AbsoluteFill
             style={{
                 background: `linear-gradient(${gradientAngle}deg, 
-          #FF6B6B 0%, 
-          #FF8E53 30%, 
-          #FFC857 60%, 
-          #FF8E53 100%)`,
+          #87CEEB 0%,
+          #5DADE2 20%,
+          #3498DB 40%,
+          #5DADE2 60%,
+          #87CEEB 80%,
+          #B0E0E6 100%)`,
                 fontFamily: "'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif",
                 display: "flex",
                 flexDirection: "column",
@@ -61,31 +85,60 @@ export const MorningVideo: React.FC<MorningVideoProps> = ({ date }) => {
                 justifyContent: "center",
             }}
         >
-            {/* 装飾的な円 - 右上 */}
-            <div
-                style={{
-                    position: "absolute",
-                    top: 100,
-                    right: -80,
-                    width: 300,
-                    height: 300,
-                    borderRadius: "50%",
-                    background: "rgba(255, 255, 255, 0.15)",
-                }}
-            />
+            {/* BGM */}
+            <Audio src={bgmSrc} volume={0.3} />
 
-            {/* 装飾的な円 - 左下 */}
+            {/* 太陽の装飾 */}
             <div
                 style={{
                     position: "absolute",
-                    bottom: 300,
-                    left: -100,
-                    width: 250,
-                    height: 250,
+                    top: 80,
+                    right: 60,
+                    width: 160,
+                    height: 160,
                     borderRadius: "50%",
-                    background: "rgba(255, 255, 255, 0.1)",
+                    background: "linear-gradient(135deg, #fff700 0%, #ffcc00 50%, #ff9500 100%)",
+                    boxShadow: `
+                        0 0 60px rgba(255, 215, 0, ${sunGlow * 0.8}),
+                        0 0 120px rgba(255, 165, 0, ${sunGlow * 0.6}),
+                        0 0 180px rgba(255, 100, 0, ${sunGlow * 0.4})
+                    `,
+                    opacity: sunGlow,
                 }}
             />
+            {/* 太陽の光芒 */}
+            {[...Array(8)].map((_, i) => (
+                <div
+                    key={i}
+                    style={{
+                        position: "absolute",
+                        top: 160,
+                        right: 140,
+                        width: 4,
+                        height: 60,
+                        background: "linear-gradient(to bottom, rgba(255, 215, 0, 0.8), transparent)",
+                        transformOrigin: "center -80px",
+                        transform: `rotate(${i * 45}deg)`,
+                        opacity: sunGlow * 0.6,
+                    }}
+                />
+            ))}
+
+            {/* 雲の装飾 */}
+            {clouds.map((cloud, i) => (
+                <div
+                    key={i}
+                    style={{
+                        position: "absolute",
+                        top: `${cloud.top}%`,
+                        left: `${cloud.left}%`,
+                        transform: `translateY(${cloud.float}px)`,
+                        opacity: cloud.opacity,
+                    }}
+                >
+                    <Cloud width={cloud.width} />
+                </div>
+            ))}
 
             {/* 日付 */}
             <div
@@ -217,6 +270,71 @@ export const MorningVideo: React.FC<MorningVideoProps> = ({ date }) => {
                 </div>
             </div>
         </AbsoluteFill>
+    );
+};
+
+// 雲コンポーネント
+const Cloud: React.FC<{ width: number }> = ({ width }) => {
+    const height = width * 0.4;
+    const circleSize = width * 0.35;
+
+    return (
+        <div
+            style={{
+                position: "relative",
+                width,
+                height,
+            }}
+        >
+            {/* 左の丸 */}
+            <div
+                style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: width * 0.05,
+                    width: circleSize * 0.8,
+                    height: circleSize * 0.8,
+                    borderRadius: "50%",
+                    background: "rgba(255, 255, 255, 0.95)",
+                }}
+            />
+            {/* 中央の丸（大） */}
+            <div
+                style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: width * 0.25,
+                    width: circleSize,
+                    height: circleSize,
+                    borderRadius: "50%",
+                    background: "rgba(255, 255, 255, 0.98)",
+                }}
+            />
+            {/* 右側の丸 */}
+            <div
+                style={{
+                    position: "absolute",
+                    bottom: 0,
+                    right: width * 0.15,
+                    width: circleSize * 0.9,
+                    height: circleSize * 0.9,
+                    borderRadius: "50%",
+                    background: "rgba(255, 255, 255, 0.95)",
+                }}
+            />
+            {/* ベース（楕円） */}
+            <div
+                style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: "5%",
+                    width: "90%",
+                    height: circleSize * 0.5,
+                    borderRadius: "50%",
+                    background: "rgba(255, 255, 255, 0.9)",
+                }}
+            />
+        </div>
     );
 };
 

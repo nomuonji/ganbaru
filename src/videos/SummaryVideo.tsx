@@ -1,6 +1,9 @@
 import React from "react";
 import {
     AbsoluteFill,
+    Audio,
+    Img,
+    Sequence,
     interpolate,
     useCurrentFrame,
     useVideoConfig,
@@ -10,6 +13,7 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { UserCharacter } from "../components/UserCharacter";
 import { CommentBubble } from "../components/CommentBubble";
+import { selectChillBgm, EFFECT_SOUNDS } from "../utils/bgm";
 
 export interface UserComment {
     username: string;
@@ -117,6 +121,9 @@ export const SummaryVideo: React.FC<SummaryVideoProps> = ({ date, comments }) =>
         ? (frame - introFrames) % perUserFrames
         : 0;
 
+    // BGM選択（日付をシードにしてランダム）
+    const bgmSrc = selectChillBgm(date);
+
     return (
         <AbsoluteFill
             style={{
@@ -124,6 +131,9 @@ export const SummaryVideo: React.FC<SummaryVideoProps> = ({ date, comments }) =>
                 fontFamily: "'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif",
             }}
         >
+            {/* BGM */}
+            <Audio src={bgmSrc} volume={0.2} />
+
             {/* 背景パーティクル */}
             {particles.map((p, i) => (
                 <div
@@ -223,6 +233,18 @@ export const SummaryVideo: React.FC<SummaryVideoProps> = ({ date, comments }) =>
                 />
             )}
 
+            {/* くす玉エフェクト音（両方コメントしたユーザーのみ） */}
+            {comments.map((comment, index) => {
+                if (!comment.morningGoal || !comment.nightAchievement) return null;
+                const userStartFrame = introFrames + index * perUserFrames;
+                const effectFrame = userStartFrame + Math.floor(fps * 3.5); // successDelayのタイミング
+                return (
+                    <Sequence key={comment.userId} from={effectFrame} durationInFrames={30}>
+                        <Audio src={EFFECT_SOUNDS.決定ボタン} volume={0.5} />
+                    </Sequence>
+                );
+            })}
+
             {/* 一覧表示セクション */}
             {isListView && (
                 <AbsoluteFill
@@ -284,24 +306,11 @@ export const SummaryVideo: React.FC<SummaryVideoProps> = ({ date, comments }) =>
                                     }}
                                 >
                                     {/* アバター */}
-                                    <div
-                                        style={{
-                                            width: 60,
-                                            height: 60,
-                                            borderRadius: "50%",
-                                            background: comment.avatarColor,
-                                            marginRight: 20,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            fontSize: 28,
-                                            fontWeight: 700,
-                                            color: "white",
-                                            boxShadow: `0 4px 15px ${comment.avatarColor}66`,
-                                        }}
-                                    >
-                                        {comment.username.charAt(0)}
-                                    </div>
+                                    <ListAvatar
+                                        avatarUrl={comment.avatarUrl}
+                                        avatarColor={comment.avatarColor}
+                                        username={comment.username}
+                                    />
 
                                     {/* 名前 */}
                                     <div
@@ -772,5 +781,163 @@ const UserCommentSection: React.FC<UserCommentSectionProps> = ({
         </AbsoluteFill>
     );
 };
+
+// 一覧表示用のアバターコンポーネント
+interface ListAvatarProps {
+    avatarUrl?: string;
+    avatarColor: string;
+    username: string;
+}
+
+const ListAvatar: React.FC<ListAvatarProps> = ({
+    avatarUrl,
+    avatarColor,
+    username,
+}) => {
+    const hasAvatar = avatarUrl && avatarUrl.length > 0;
+
+    if (hasAvatar) {
+        // プロフィール画像を使用
+        return (
+            <div
+                style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    marginRight: 20,
+                    border: "3px solid white",
+                    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
+                    flexShrink: 0,
+                }}
+            >
+                <Img
+                    src={avatarUrl}
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                    }}
+                />
+            </div>
+        );
+    }
+
+    // キャラクター風アイコン（プロフィール画像がない場合）
+    return (
+        <div
+            style={{
+                width: 60,
+                height: 60,
+                borderRadius: "50%",
+                background: `linear-gradient(135deg, ${avatarColor} 0%, ${adjustColorForList(avatarColor, -30)} 100%)`,
+                marginRight: 20,
+                position: "relative",
+                border: "3px solid white",
+                boxShadow: `0 4px 15px ${avatarColor}66`,
+                flexShrink: 0,
+            }}
+        >
+            {/* 目（左） */}
+            <div
+                style={{
+                    position: "absolute",
+                    top: "38%",
+                    left: "22%",
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: "#333",
+                }}
+            />
+            {/* 目（右） */}
+            <div
+                style={{
+                    position: "absolute",
+                    top: "38%",
+                    right: "22%",
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: "#333",
+                }}
+            />
+            {/* 目のハイライト（左） */}
+            <div
+                style={{
+                    position: "absolute",
+                    top: "36%",
+                    left: "24%",
+                    width: 3,
+                    height: 3,
+                    borderRadius: "50%",
+                    background: "white",
+                }}
+            />
+            {/* 目のハイライト（右） */}
+            <div
+                style={{
+                    position: "absolute",
+                    top: "36%",
+                    right: "24%",
+                    width: 3,
+                    height: 3,
+                    borderRadius: "50%",
+                    background: "white",
+                }}
+            />
+            {/* ほっぺ（左） */}
+            <div
+                style={{
+                    position: "absolute",
+                    top: "55%",
+                    left: "8%",
+                    width: 10,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: "#FF6B6B",
+                    opacity: 0.6,
+                }}
+            />
+            {/* ほっぺ（右） */}
+            <div
+                style={{
+                    position: "absolute",
+                    top: "55%",
+                    right: "8%",
+                    width: 10,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: "#FF6B6B",
+                    opacity: 0.6,
+                }}
+            />
+            {/* 口（笑顔） */}
+            <div
+                style={{
+                    position: "absolute",
+                    top: "62%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: 14,
+                    height: 7,
+                    borderRadius: "0 0 14px 14px",
+                    background: "#FF6B6B",
+                    border: "1.5px solid #333",
+                    borderTop: "none",
+                }}
+            />
+        </div>
+    );
+};
+
+// 色を明るくしたり暗くしたりするヘルパー関数
+function adjustColorForList(hex: string, amount: number): string {
+    const num = parseInt(hex.replace("#", ""), 16);
+    const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amount));
+    const b = Math.min(255, Math.max(0, (num & 0x0000ff) + amount));
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
+}
 
 export default SummaryVideo;

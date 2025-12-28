@@ -1,6 +1,7 @@
 import React from "react";
 import {
     AbsoluteFill,
+    Audio,
     interpolate,
     useCurrentFrame,
     useVideoConfig,
@@ -8,6 +9,7 @@ import {
 } from "remotion";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import { selectChillBgm } from "../utils/bgm";
 
 interface NightVideoProps {
     date: string;
@@ -49,6 +51,9 @@ export const NightVideo: React.FC<NightVideoProps> = ({ date }) => {
     // 星のきらめき効果
     const starOpacity = interpolate(frame % 60, [0, 30, 60], [0.3, 1, 0.3]);
 
+    // BGM選択（日付をシードにしてランダム）
+    const bgmSrc = selectChillBgm(date);
+
     // 星の位置を生成
     const stars = [
         { top: 15, left: 10, size: 6 },
@@ -80,6 +85,9 @@ export const NightVideo: React.FC<NightVideoProps> = ({ date }) => {
                 justifyContent: "center",
             }}
         >
+            {/* BGM */}
+            <Audio src={bgmSrc} volume={0.3} />
+
             {/* 星の装飾 */}
             {stars.map((star, i) => (
                 <div
