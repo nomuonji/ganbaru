@@ -192,18 +192,54 @@ export const NightVideo: React.FC<NightVideoProps> = ({ date }) => {
                 👇 コメントする
             </div>
 
-            {/* フッター */}
+            {/* フッター - まとめ動画掲載告知 */}
             <div
                 style={{
                     position: "absolute",
-                    bottom: 120,
-                    fontSize: 36,
-                    color: "rgba(255, 255, 255, 0.8)",
+                    bottom: 60,
+                    left: 0,
+                    right: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
                     opacity: ctaOpacity,
-                    fontWeight: 500,
                 }}
             >
-                #今日の頑張り #毎日投稿
+                <div
+                    style={{
+                        fontSize: 32,
+                        color: "rgba(255, 255, 255, 0.95)",
+                        fontWeight: 600,
+                        marginBottom: 15,
+                        textAlign: "center",
+                    }}
+                >
+                    📺 今夜のまとめ動画であなたを紹介！
+                </div>
+                <div
+                    style={{
+                        fontSize: 22,
+                        color: "rgba(255, 255, 255, 0.75)",
+                        textAlign: "center",
+                        lineHeight: 1.5,
+                        maxWidth: 900,
+                        padding: "0 40px",
+                    }}
+                >
+                    ※コメントすると、まとめ動画での紹介・
+                    <br />
+                    プロフィール画像の使用に同意したものとします
+                </div>
+                <div
+                    style={{
+                        fontSize: 28,
+                        color: "rgba(255, 255, 255, 0.85)",
+                        marginTop: 20,
+                        fontWeight: 500,
+                    }}
+                >
+                    #今日の頑張り #毎日投稿
+                </div>
             </div>
         </AbsoluteFill>
     );

@@ -17,6 +17,7 @@ export interface UserComment {
     morningGoal?: string;
     nightAchievement?: string;
     avatarColor: string;
+    avatarUrl?: string; // プロフィール画像URL（YouTube APIから取得）
 }
 
 interface SummaryVideoProps {
@@ -621,6 +622,7 @@ const UserCommentSection: React.FC<UserCommentSectionProps> = ({
                 <UserCharacter
                     username={comment.username}
                     avatarColor={comment.avatarColor}
+                    avatarUrl={comment.avatarUrl}
                 />
             </div>
 

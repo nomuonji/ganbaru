@@ -1,30 +1,35 @@
 import React from "react";
-import { interpolate, useCurrentFrame } from "remotion";
+import { Img, interpolate, useCurrentFrame, staticFile } from "remotion";
 
 interface UserCharacterProps {
     username: string;
     avatarColor: string;
+    avatarUrl?: string; // プロフィール画像URL（あれば使用）
 }
 
 export const UserCharacter: React.FC<UserCharacterProps> = ({
     username,
     avatarColor,
+    avatarUrl,
 }) => {
     const frame = useCurrentFrame();
 
     // アイドルアニメーション（ふわふわ浮遊）
     const floatY = Math.sin(frame * 0.1) * 5;
 
-    // 瞬きアニメーション
+    // 瞬きアニメーション（キャラクター用）
     const blinkPhase = frame % 120;
     const eyeScaleY = blinkPhase > 115 ? 0.1 : 1;
 
-    // ほっぺのアニメーション
+    // ほっぺのアニメーション（キャラクター用）
     const cheekOpacity = interpolate(
         Math.sin(frame * 0.05),
         [-1, 1],
         [0.4, 0.7]
     );
+
+    // プロフィール画像がある場合はそれを使用
+    const hasAvatar = avatarUrl && avatarUrl.length > 0;
 
     return (
         <div
@@ -35,112 +40,135 @@ export const UserCharacter: React.FC<UserCharacterProps> = ({
                 transform: `translateY(${floatY}px)`,
             }}
         >
-            {/* キャラクター本体 */}
-            <div
-                style={{
-                    width: 200,
-                    height: 200,
-                    borderRadius: "50%",
-                    background: `linear-gradient(135deg, ${avatarColor} 0%, ${adjustColor(avatarColor, -30)} 100%)`,
-                    position: "relative",
-                    boxShadow: `0 10px 40px ${avatarColor}66`,
-                    border: "6px solid white",
-                }}
-            >
-                {/* 目 */}
+            {hasAvatar ? (
+                // プロフィール画像を使用
                 <div
                     style={{
-                        position: "absolute",
-                        top: "40%",
-                        left: "25%",
-                        width: 24,
-                        height: 24,
+                        width: 200,
+                        height: 200,
                         borderRadius: "50%",
-                        background: "#333",
-                        transform: `scaleY(${eyeScaleY})`,
+                        overflow: "hidden",
+                        border: "6px solid white",
+                        boxShadow: `0 10px 40px rgba(0, 0, 0, 0.3)`,
                     }}
-                />
+                >
+                    <Img
+                        src={avatarUrl}
+                        style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                        }}
+                    />
+                </div>
+            ) : (
+                // キャラクター本体（プロフィール画像がない場合）
                 <div
                     style={{
-                        position: "absolute",
-                        top: "40%",
-                        right: "25%",
-                        width: 24,
-                        height: 24,
+                        width: 200,
+                        height: 200,
                         borderRadius: "50%",
-                        background: "#333",
-                        transform: `scaleY(${eyeScaleY})`,
+                        background: `linear-gradient(135deg, ${avatarColor} 0%, ${adjustColor(avatarColor, -30)} 100%)`,
+                        position: "relative",
+                        boxShadow: `0 10px 40px ${avatarColor}66`,
+                        border: "6px solid white",
                     }}
-                />
+                >
+                    {/* 目 */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "40%",
+                            left: "25%",
+                            width: 24,
+                            height: 24,
+                            borderRadius: "50%",
+                            background: "#333",
+                            transform: `scaleY(${eyeScaleY})`,
+                        }}
+                    />
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "40%",
+                            right: "25%",
+                            width: 24,
+                            height: 24,
+                            borderRadius: "50%",
+                            background: "#333",
+                            transform: `scaleY(${eyeScaleY})`,
+                        }}
+                    />
 
-                {/* 目のハイライト */}
-                <div
-                    style={{
-                        position: "absolute",
-                        top: "38%",
-                        left: "28%",
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
-                        background: "white",
-                        opacity: eyeScaleY,
-                    }}
-                />
-                <div
-                    style={{
-                        position: "absolute",
-                        top: "38%",
-                        right: "28%",
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
-                        background: "white",
-                        opacity: eyeScaleY,
-                    }}
-                />
+                    {/* 目のハイライト */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "38%",
+                            left: "28%",
+                            width: 8,
+                            height: 8,
+                            borderRadius: "50%",
+                            background: "white",
+                            opacity: eyeScaleY,
+                        }}
+                    />
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "38%",
+                            right: "28%",
+                            width: 8,
+                            height: 8,
+                            borderRadius: "50%",
+                            background: "white",
+                            opacity: eyeScaleY,
+                        }}
+                    />
 
-                {/* ほっぺ */}
-                <div
-                    style={{
-                        position: "absolute",
-                        top: "55%",
-                        left: "10%",
-                        width: 30,
-                        height: 20,
-                        borderRadius: "50%",
-                        background: "#FF6B6B",
-                        opacity: cheekOpacity,
-                    }}
-                />
-                <div
-                    style={{
-                        position: "absolute",
-                        top: "55%",
-                        right: "10%",
-                        width: 30,
-                        height: 20,
-                        borderRadius: "50%",
-                        background: "#FF6B6B",
-                        opacity: cheekOpacity,
-                    }}
-                />
+                    {/* ほっぺ */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "55%",
+                            left: "10%",
+                            width: 30,
+                            height: 20,
+                            borderRadius: "50%",
+                            background: "#FF6B6B",
+                            opacity: cheekOpacity,
+                        }}
+                    />
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "55%",
+                            right: "10%",
+                            width: 30,
+                            height: 20,
+                            borderRadius: "50%",
+                            background: "#FF6B6B",
+                            opacity: cheekOpacity,
+                        }}
+                    />
 
-                {/* 口（笑顔） */}
-                <div
-                    style={{
-                        position: "absolute",
-                        top: "65%",
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        width: 40,
-                        height: 20,
-                        borderRadius: "0 0 40px 40px",
-                        background: "#FF6B6B",
-                        border: "3px solid #333",
-                        borderTop: "none",
-                    }}
-                />
-            </div>
+                    {/* 口（笑顔） */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "65%",
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            width: 40,
+                            height: 20,
+                            borderRadius: "0 0 40px 40px",
+                            background: "#FF6B6B",
+                            border: "3px solid #333",
+                            borderTop: "none",
+                        }}
+                    />
+                </div>
+            )}
 
             {/* ユーザー名 */}
             <div

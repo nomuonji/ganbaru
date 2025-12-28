@@ -3,6 +3,7 @@ import { z } from "zod";
 import { MorningVideo } from "./videos/MorningVideo";
 import { NightVideo } from "./videos/NightVideo";
 import { SummaryVideo, UserComment } from "./videos/SummaryVideo";
+import { PromotionalSummaryVideo } from "./videos/PromotionalSummaryVideo";
 import { sampleComments } from "./data/sampleComments";
 
 // ショート動画の設定（縦長 9:16）
@@ -57,11 +58,16 @@ const userCommentSchema = z.object({
     morningGoal: z.string().optional(),
     nightAchievement: z.string().optional(),
     avatarColor: z.string(),
+    avatarUrl: z.string().optional(),
 });
 
 const summaryVideoSchema = z.object({
     date: z.string(),
     comments: z.array(userCommentSchema),
+});
+
+const promotionalVideoSchema = z.object({
+    date: z.string(),
 });
 
 export const RemotionRoot: React.FC = () => {
@@ -112,6 +118,18 @@ export const RemotionRoot: React.FC = () => {
                 defaultProps={{
                     date: today,
                     comments: sortedComments.slice(0, 3),
+                }}
+            />
+
+            {/* 広報動画 - コメントがない日用 */}
+            <Composition
+                id="PromotionalVideo"
+                component={PromotionalSummaryVideo}
+                schema={promotionalVideoSchema}
+                {...SUMMARY_VIDEO_CONFIG}
+                durationInFrames={30 * 30} // 30秒
+                defaultProps={{
+                    date: today,
                 }}
             />
         </>
