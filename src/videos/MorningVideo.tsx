@@ -189,7 +189,7 @@ export const MorningVideo: React.FC<MorningVideoProps> = ({ date }) => {
                 style={{
                     fontSize: 44,
                     color: "rgba(255, 255, 255, 0.95)",
-                    marginTop: 80,
+                    marginTop: 60,
                     opacity: subtitleOpacity,
                     lineHeight: 1.8,
                     textAlign: "center",
@@ -200,14 +200,39 @@ export const MorningVideo: React.FC<MorningVideoProps> = ({ date }) => {
                 教えてください✨
             </div>
 
+            {/* まとめ動画紹介バナー */}
+            <div
+                style={{
+                    marginTop: 60,
+                    background: "linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(255, 165, 0, 0.3))",
+                    borderRadius: 25,
+                    padding: "20px 45px",
+                    border: "3px solid rgba(255, 215, 0, 0.7)",
+                    boxShadow: "0 8px 40px rgba(255, 165, 0, 0.5)",
+                    opacity: ctaOpacity,
+                }}
+            >
+                <div
+                    style={{
+                        fontSize: 44,
+                        color: "#FFD700",
+                        fontWeight: 800,
+                        textAlign: "center",
+                        textShadow: "0 3px 15px rgba(0, 0, 0, 0.4)",
+                    }}
+                >
+                    🎬 今夜の動画であなたを紹介！
+                </div>
+            </div>
+
             {/* CTA */}
             <div
                 style={{
-                    marginTop: 100,
-                    padding: "35px 70px",
+                    marginTop: 50,
+                    padding: "30px 60px",
                     background: "rgba(255, 255, 255, 0.25)",
                     borderRadius: 100,
-                    fontSize: 52,
+                    fontSize: 48,
                     fontWeight: 700,
                     color: "white",
                     opacity: ctaOpacity,
@@ -217,55 +242,19 @@ export const MorningVideo: React.FC<MorningVideoProps> = ({ date }) => {
                     boxShadow: "0 10px 40px rgba(0, 0, 0, 0.15)",
                 }}
             >
-                👇 コメントする
+                👇 コメントで参加
             </div>
 
-            {/* フッター - まとめ動画掲載告知 */}
+            {/* 注意書き（コンパクトに） */}
             <div
                 style={{
-                    position: "absolute",
-                    bottom: 40,
-                    left: 0,
-                    right: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
+                    marginTop: 30,
+                    fontSize: 28,
+                    color: "rgba(255, 255, 255, 0.7)",
                     opacity: ctaOpacity,
                 }}
             >
-                {/* まとめ動画紹介バナー */}
-                <div
-                    style={{
-                        background: "linear-gradient(135deg, rgba(255, 215, 0, 0.35), rgba(255, 165, 0, 0.25))",
-                        borderRadius: 25,
-                        padding: "25px 50px",
-                        marginBottom: 20,
-                        border: "3px solid rgba(255, 215, 0, 0.6)",
-                        boxShadow: "0 8px 40px rgba(255, 165, 0, 0.4)",
-                    }}
-                >
-                    <div
-                        style={{
-                            fontSize: 48,
-                            color: "#FFD700",
-                            fontWeight: 800,
-                            textAlign: "center",
-                            textShadow: "0 3px 15px rgba(0, 0, 0, 0.4)",
-                        }}
-                    >
-                        🎬 コメント → 今夜の動画で紹介！
-                    </div>
-                </div>
-                <div
-                    style={{
-                        fontSize: 32,
-                        color: "rgba(255, 255, 255, 0.9)",
-                        textAlign: "center",
-                        fontWeight: 500,
-                    }}
-                >
-                    ※コメント = まとめ動画への出演同意
-                </div>
+                ※コメント=まとめ動画への出演同意
             </div>
         </AbsoluteFill>
     );

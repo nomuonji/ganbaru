@@ -130,33 +130,47 @@ const VIDEO_CONFIGS = {
     },
 };
 
-// 動画にコメントを投稿
-async function postComment(videoId, commentText) {
+// 動画にコメントを投稿（リトライ機能付き）
+async function postComment(videoId, commentText, retries = 3) {
     const auth = getAuthClient();
 
-    try {
-        const response = await youtube.commentThreads.insert({
-            auth,
-            part: ["snippet"],
-            requestBody: {
-                snippet: {
-                    videoId: videoId,
-                    topLevelComment: {
-                        snippet: {
-                            textOriginal: commentText,
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            console.log(`コメント投稿試行 ${attempt}/${retries}...`);
+            const response = await youtube.commentThreads.insert({
+                auth,
+                part: ["snippet"],
+                requestBody: {
+                    snippet: {
+                        videoId: videoId,
+                        topLevelComment: {
+                            snippet: {
+                                textOriginal: commentText,
+                            },
                         },
                     },
                 },
-            },
-        });
+            });
 
-        console.log(`コメントを投稿しました: ${response.data.id}`);
-        return response.data;
-    } catch (error) {
-        console.error("コメント投稿エラー:", error.message);
-        // コメント投稿失敗は致命的ではないので続行
-        return null;
+            console.log(`✅ コメントを投稿しました: ${response.data.id}`);
+            return response.data;
+        } catch (error) {
+            console.error(`コメント投稿エラー (試行 ${attempt}/${retries}):`, error.message);
+            if (error.response) {
+                console.error("詳細:", JSON.stringify(error.response.data, null, 2));
+            }
+
+            if (attempt < retries) {
+                // 次のリトライまで待機時間を増やす
+                const waitTime = attempt * 10000; // 10秒, 20秒, 30秒...
+                console.log(`${waitTime / 1000}秒後にリトライします...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+            }
+        }
     }
+
+    console.error("❌ コメント投稿に失敗しました（全リトライ失敗）");
+    return null;
 }
 
 async function uploadVideo(videoPath, type, date) {
@@ -246,8 +260,9 @@ async function main() {
         const config = VIDEO_CONFIGS[type];
         if (config.pinnedComment) {
             console.log("\n説明コメントを投稿中...");
-            // 少し待ってから投稿（動画の処理完了を待つ）
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            // 動画の処理完了を待つ（YouTubeで動画が利用可能になるまで待機）
+            console.log("動画の処理完了を待機中（15秒）...");
+            await new Promise(resolve => setTimeout(resolve, 15000));
             await postComment(result.id, config.pinnedComment);
         }
 
