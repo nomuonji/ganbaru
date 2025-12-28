@@ -204,7 +204,7 @@ export const NightVideo: React.FC<NightVideoProps> = ({ date }) => {
             <div
                 style={{
                     position: "absolute",
-                    bottom: 60,
+                    bottom: 40,
                     left: 0,
                     right: 0,
                     display: "flex",
@@ -213,40 +213,38 @@ export const NightVideo: React.FC<NightVideoProps> = ({ date }) => {
                     opacity: ctaOpacity,
                 }}
             >
+                {/* まとめ動画紹介バナー */}
+                <div
+                    style={{
+                        background: "linear-gradient(135deg, rgba(255, 215, 0, 0.35), rgba(255, 165, 0, 0.25))",
+                        borderRadius: 25,
+                        padding: "25px 50px",
+                        marginBottom: 20,
+                        border: "3px solid rgba(255, 215, 0, 0.6)",
+                        boxShadow: "0 8px 40px rgba(255, 165, 0, 0.4)",
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: 48,
+                            color: "#FFD700",
+                            fontWeight: 800,
+                            textAlign: "center",
+                            textShadow: "0 3px 15px rgba(0, 0, 0, 0.5)",
+                        }}
+                    >
+                        🎬 コメント → 今夜の動画で紹介！
+                    </div>
+                </div>
                 <div
                     style={{
                         fontSize: 32,
-                        color: "rgba(255, 255, 255, 0.95)",
-                        fontWeight: 600,
-                        marginBottom: 15,
+                        color: "rgba(255, 255, 255, 0.9)",
                         textAlign: "center",
-                    }}
-                >
-                    📺 今夜のまとめ動画であなたを紹介！
-                </div>
-                <div
-                    style={{
-                        fontSize: 22,
-                        color: "rgba(255, 255, 255, 0.75)",
-                        textAlign: "center",
-                        lineHeight: 1.5,
-                        maxWidth: 900,
-                        padding: "0 40px",
-                    }}
-                >
-                    ※コメントすると、まとめ動画での紹介・
-                    <br />
-                    プロフィール画像の使用に同意したものとします
-                </div>
-                <div
-                    style={{
-                        fontSize: 28,
-                        color: "rgba(255, 255, 255, 0.85)",
-                        marginTop: 20,
                         fontWeight: 500,
                     }}
                 >
-                    #今日の頑張り #毎日投稿
+                    ※コメント = まとめ動画への出演同意
                 </div>
             </div>
         </AbsoluteFill>
