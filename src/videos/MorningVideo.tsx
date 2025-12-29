@@ -200,35 +200,10 @@ export const MorningVideo: React.FC<MorningVideoProps> = ({ date }) => {
                 教えてください✨
             </div>
 
-            {/* まとめ動画紹介バナー */}
+            {/* CTA - 先に表示 */}
             <div
                 style={{
                     marginTop: 60,
-                    background: "linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(255, 165, 0, 0.3))",
-                    borderRadius: 25,
-                    padding: "20px 45px",
-                    border: "3px solid rgba(255, 215, 0, 0.7)",
-                    boxShadow: "0 8px 40px rgba(255, 165, 0, 0.5)",
-                    opacity: ctaOpacity,
-                }}
-            >
-                <div
-                    style={{
-                        fontSize: 44,
-                        color: "#FFD700",
-                        fontWeight: 800,
-                        textAlign: "center",
-                        textShadow: "0 3px 15px rgba(0, 0, 0, 0.4)",
-                    }}
-                >
-                    🎬 今夜の動画であなたを紹介！
-                </div>
-            </div>
-
-            {/* CTA */}
-            <div
-                style={{
-                    marginTop: 50,
                     padding: "30px 60px",
                     background: "rgba(255, 255, 255, 0.25)",
                     borderRadius: 100,
@@ -245,11 +220,36 @@ export const MorningVideo: React.FC<MorningVideoProps> = ({ date }) => {
                 👇 コメントで参加
             </div>
 
-            {/* 注意書き（コンパクトに） */}
+            {/* まとめ動画紹介バナー - 後に表示 */}
             <div
                 style={{
-                    marginTop: 30,
-                    fontSize: 28,
+                    marginTop: 40,
+                    background: "linear-gradient(135deg, rgba(255, 215, 0, 0.4), rgba(255, 165, 0, 0.3))",
+                    borderRadius: 20,
+                    padding: "18px 40px",
+                    border: "3px solid rgba(255, 215, 0, 0.7)",
+                    boxShadow: "0 8px 40px rgba(255, 165, 0, 0.5)",
+                    opacity: ctaOpacity,
+                }}
+            >
+                <div
+                    style={{
+                        fontSize: 38,
+                        color: "#FFD700",
+                        fontWeight: 800,
+                        textAlign: "center",
+                        textShadow: "0 3px 15px rgba(0, 0, 0, 0.4)",
+                    }}
+                >
+                    🎬 今夜の動画であなたを紹介！
+                </div>
+            </div>
+
+            {/* 注意書き */}
+            <div
+                style={{
+                    marginTop: 25,
+                    fontSize: 26,
                     color: "rgba(255, 255, 255, 0.7)",
                     opacity: ctaOpacity,
                 }}
