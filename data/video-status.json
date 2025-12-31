@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-12-31T10:06:34.967Z",
+  "lastUpdated": "2025-12-31T14:46:24.758Z",
   "videos": {
     "morning": {
       "videoId": "y4M0bJrj1nQ",
@@ -12,12 +12,19 @@
       "uploadedAt": "2025-12-31T10:06:34.967Z"
     },
     "summary": {
-      "videoId": "I7onqkfJ3xE",
-      "date": "2025-12-29",
-      "uploadedAt": "2025-12-29T14:48:43.741Z"
+      "videoId": "zIEsVIgfmtg",
+      "date": "2025-12-31",
+      "uploadedAt": "2025-12-31T14:46:24.758Z"
     }
   },
   "history": [
+    {
+      "type": "summary",
+      "videoId": "zIEsVIgfmtg",
+      "date": "2025-12-31",
+      "uploadedAt": "2025-12-31T14:46:24.758Z",
+      "title": "【2025年12月31日】みんなの今日の頑張り✨"
+    },
     {
       "type": "night",
       "videoId": "c14UWYph3ds",
