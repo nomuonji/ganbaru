@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-01-12T22:12:11.832Z",
+  "lastUpdated": "2026-01-13T10:06:46.804Z",
   "videos": {
     "morning": {
       "videoId": "ZmemZUZ---E",
@@ -7,9 +7,9 @@
       "uploadedAt": "2026-01-12T22:12:11.832Z"
     },
     "night": {
-      "videoId": "wIQlbTNaVwk",
-      "date": "2026-01-12",
-      "uploadedAt": "2026-01-12T10:07:42.646Z"
+      "videoId": "BCvByBiFdwM",
+      "date": "2026-01-13",
+      "uploadedAt": "2026-01-13T10:06:46.804Z"
     },
     "summary": {
       "videoId": "rCONFMELkCw",
@@ -18,6 +18,13 @@
     }
   },
   "history": [
+    {
+      "type": "night",
+      "videoId": "BCvByBiFdwM",
+      "date": "2026-01-13",
+      "uploadedAt": "2026-01-13T10:06:46.804Z",
+      "title": "【2026年1月13日】おつかれさま！今日できたことは？🌙"
+    },
     {
       "type": "morning",
       "videoId": "ZmemZUZ---E",
