@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-02-13T22:17:01.955Z",
+  "lastUpdated": "2026-02-14T10:08:13.508Z",
   "videos": {
     "morning": {
       "videoId": "9U-ptjNBvW8",
@@ -7,9 +7,9 @@
       "uploadedAt": "2026-02-13T22:17:01.955Z"
     },
     "night": {
-      "videoId": "AXsI7BwhFSY",
-      "date": "2026-02-13",
-      "uploadedAt": "2026-02-13T10:17:05.119Z"
+      "videoId": "rVq-Fc4K6wc",
+      "date": "2026-02-14",
+      "uploadedAt": "2026-02-14T10:08:13.508Z"
     },
     "summary": {
       "videoId": "3pUHb2eDU0E",
@@ -18,6 +18,13 @@
     }
   },
   "history": [
+    {
+      "type": "night",
+      "videoId": "rVq-Fc4K6wc",
+      "date": "2026-02-14",
+      "uploadedAt": "2026-02-14T10:08:13.508Z",
+      "title": "【2026年2月14日】おつかれさま！今日できたことは？🌙"
+    },
     {
       "type": "morning",
       "videoId": "9U-ptjNBvW8",
@@ -710,13 +717,6 @@
       "date": "2026-01-02",
       "uploadedAt": "2026-01-01T22:11:53.164Z",
       "title": "【2026年1月2日】おはよう！今日の目標は？🌅"
-    },
-    {
-      "type": "summary",
-      "videoId": "5-ykxwQgguM",
-      "date": "2026-01-01",
-      "uploadedAt": "2026-01-01T14:46:01.036Z",
-      "title": "【2026年1月1日】みんなの今日の頑張り✨"
     }
   ]
 }
