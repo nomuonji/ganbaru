@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-26T22:19:55.527Z",
+  "lastUpdated": "2026-04-27T10:41:24.572Z",
   "videos": {
     "morning": {
       "videoId": "yvpT6bdoKcQ",
@@ -7,9 +7,9 @@
       "uploadedAt": "2026-04-26T22:19:55.527Z"
     },
     "night": {
-      "videoId": "aWrAuAHtHx0",
-      "date": "2026-04-26",
-      "uploadedAt": "2026-04-26T10:18:01.464Z"
+      "videoId": "gLMOcFAPzyM",
+      "date": "2026-04-27",
+      "uploadedAt": "2026-04-27T10:41:24.572Z"
     },
     "summary": {
       "videoId": "UQ6vA3esGok",
@@ -18,6 +18,13 @@
     }
   },
   "history": [
+    {
+      "type": "night",
+      "videoId": "gLMOcFAPzyM",
+      "date": "2026-04-27",
+      "uploadedAt": "2026-04-27T10:41:24.572Z",
+      "title": "【2026年4月27日】おつかれさま！今日できたことは？🌙"
+    },
     {
       "type": "morning",
       "videoId": "yvpT6bdoKcQ",
@@ -710,13 +717,6 @@
       "date": "2026-03-14",
       "uploadedAt": "2026-03-14T10:08:32.616Z",
       "title": "【2026年3月14日】おつかれさま！今日できたことは？🌙"
-    },
-    {
-      "type": "morning",
-      "videoId": "Sx2GF-F_mCw",
-      "date": "2026-03-14",
-      "uploadedAt": "2026-03-13T22:14:58.393Z",
-      "title": "【2026年3月14日】おはよう！今日の目標は？🌅"
     }
   ]
 }
