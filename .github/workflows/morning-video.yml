@@ -3,7 +3,7 @@ name: 朝の動画投稿
 on:
   schedule:
     # 毎日 JST 7:00 (UTC 22:00 前日) に実行
-    - cron: '0 22 * * *'
+    # - cron: '0 22 * * *'
   workflow_dispatch:
 
 permissions:
