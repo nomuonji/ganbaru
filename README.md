@@ -1,5 +1,16 @@
 # 🎯 頑張る - インタラクティブ動画自動生成システム
 
+## Animation Factory 向け投稿チャンネル再利用（2026-10-19）
+
+ユーザー指定により、旧「今日の頑張り」YouTubeチャンネルを **nomuonji/animation-factory の新しい投稿先**にする。過去動画はそのまま保存し、既存の朝・夜・まとめの cron は停止状態を維持する。
+
+- Actions: [Animation Factory → Today's Ganbaru](../../actions/workflows/animation-factory-channel.yml)
+- `verify` は既存GitHub SecretsのYouTube OAuthが過去投稿の本人チャンネルを指しているか確認する。**秘密値はAnimation Factoryリポジトリへ移さない。**
+- `upload_private` はAnimation Factory mainの実動画をこのリポジトリのrunnerで生成し、当該チャンネルに **非公開のみ** 投稿する。実行ごとに動画のレビュー確認が必要。自動公開や定期実行はしない。
+- OAuthが失効していれば旧 Ganbaru リポジトリ側の認可のみ修復する。チェックが完了しなければ動画投稿を行わない。
+
+
+
 毎日の頑張りを共有するインタラクティブなYouTube動画を自動生成・投稿するシステムです。
 
 ## 🌟 コンセプト
