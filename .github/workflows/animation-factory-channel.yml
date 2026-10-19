@@ -1,0 +1,186 @@
+name: Animation Factory → Today's Ganbaru (owned channel)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/animation-factory-channel.yml'
+      - 'scripts/verify-animation-factory-channel.mjs'
+      - 'scripts/upload-animation-factory-private.mjs'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Check channel ownership, or upload a reviewed Animation Factory video privately'
+        type: choice
+        required: true
+        default: verify
+        options: [verify, upload_private]
+      format:
+        description: 'Animation Factory production format'
+        type: choice
+        required: true
+        default: footage-first
+        options: [footage-first, standard]
+      production:
+        description: 'Named real production folder under nomuonji/animation-factory/productions'
+        type: string
+        required: false
+      confirm_review:
+        description: 'I watched the actual video and checked the editorial content and source rights'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ganbaru-animation-factory-${{ inputs.production || 'channel-verification' }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify Ganbaru OAuth channel against historical published videos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+      YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+      YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Verify channel identity without uploading
+        run: node scripts/verify-animation-factory-channel.mjs --verify
+
+  private-upload:
+    name: Render Animation Factory on Ganbaru runner; upload privately
+    needs: verify
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'upload_private'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+      YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+      YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+      PRODUCTION: ${{ inputs.production }}
+      FORMAT: ${{ inputs.format }}
+      ANIMATION_FACTORY_UPLOAD_MODE: private_only
+      ANIMATION_FACTORY_REVIEW_CONFIRMED: ${{ inputs.confirm_review }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: nomuonji/animation-factory
+          ref: main
+          path: animation-factory
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Validate requested production and review confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$ANIMATION_FACTORY_REVIEW_CONFIRMED" = "true" || { echo "Review the real video before uploading" >&2; exit 2; }
+          [[ "$PRODUCTION" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "Invalid production name" >&2; exit 2; }
+          if [ "$FORMAT" = "footage-first" ]; then
+            test -s "animation-factory/productions/$PRODUCTION/footage-first.json"
+          elif [ "$FORMAT" = "standard" ]; then
+            test -s "animation-factory/productions/$PRODUCTION/production.json"
+          else
+            exit 2
+          fi
+          echo "ANIMATION_FACTORY_SOURCE_SHA=$(git -C animation-factory rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Install uploader dependencies, FFmpeg and fonts
+        run: |
+          npm ci
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
+      - name: Install footage-first Python dependencies
+        if: inputs.format == 'footage-first'
+        run: python -m pip install numpy pillow opencv-python-headless
+      - name: Boot VOICEVOX Nemo only for requested footage-first voices
+        if: inputs.format == 'footage-first'
+        shell: bash
+        run: |
+          set -euo pipefail
+          provider="$(node -p 'require("./animation-factory/productions/" + process.env.PRODUCTION + "/footage-first.json").voice?.provider || "none"')"
+          if [ "$provider" != "voicevox-nemo" ]; then exit 0; fi
+          docker pull voicevox/voicevox_nemo_engine:cpu-latest
+          docker run -d --rm --name ganbaru-voice -p 127.0.0.1:50021:50121 voicevox/voicevox_nemo_engine:cpu-latest
+          for i in {1..90}; do
+            if curl -fsS http://127.0.0.1:50021/version >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          docker logs ganbaru-voice || true
+          exit 1
+      - name: Render reviewed real moving-footage production
+        if: inputs.format == 'footage-first'
+        working-directory: animation-factory
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/footage-first-validate.mjs "productions/$PRODUCTION/footage-first.json"
+          python tools/footage-first-render.py "productions/$PRODUCTION/footage-first.json"
+          id="$(node -p 'require("./productions/" + process.env.PRODUCTION + "/footage-first.json").id')"
+          mkdir -p "$RUNNER_TEMP/animation-upload"
+          cp "outputs/footage-first/$id/video.mp4" "$RUNNER_TEMP/animation-upload/video.mp4"
+          echo "METADATA_FILE=animation-factory/productions/$PRODUCTION/footage-first.json" >> "$GITHUB_ENV"
+      - name: Build and render standard production
+        if: inputs.format == 'standard'
+        working-directory: animation-factory
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npx playwright install --with-deps chromium
+          node tools/validate-production.mjs "productions/$PRODUCTION/production.json"
+          node tools/validate-attention.mjs "productions/$PRODUCTION/production.json"
+          npm run build
+          npm run render -- "$PRODUCTION"
+          id="$(node -p 'require("./productions/" + process.env.PRODUCTION + "/production.json").meta.id')"
+          mkdir -p "$RUNNER_TEMP/animation-upload"
+          cp "outputs/$id.mp4" "$RUNNER_TEMP/animation-upload/video.mp4"
+          echo "METADATA_FILE=animation-factory/productions/$PRODUCTION/production.json" >> "$GITHUB_ENV"
+      - name: Ensure the MP4 contains real video and audio
+        shell: bash
+        run: |
+          set -euo pipefail
+          video="$RUNNER_TEMP/animation-upload/video.mp4"
+          test -s "$video"
+          test "$(ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=nk=1:nw=1 "$video")" = h264
+          test "$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=nk=1:nw=1 "$video")" = aac
+      - name: Upload as private only using the historical Ganbaru OAuth identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/upload-animation-factory-private.mjs \
+            --mp4 "$RUNNER_TEMP/animation-upload/video.mp4" \
+            --metadata "$METADATA_FILE" \
+            --format "$FORMAT" \
+            --receipt "$RUNNER_TEMP/animation-upload/receipt.json"
+      - name: Save a redacted status receipt for reconciliation
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/animation-upload"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+          import {join} from 'node:path';
+          const path=join(process.env.RUNNER_TEMP,'animation-upload','receipt.json');
+          const record=existsSync(path)?JSON.parse(readFileSync(path,'utf8')):{stage:'not_started'};
+          delete record.sessionUrl;
+          delete record.error;
+          writeFileSync(join(process.env.RUNNER_TEMP,'animation-upload','redacted.json'),JSON.stringify(record,null,2)+'\n');
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ganbaru-private-upload-${{ github.run_id }}
+          path: ${{ runner.temp }}/animation-upload/redacted.json
+          retention-days: 90
+          if-no-files-found: warn
