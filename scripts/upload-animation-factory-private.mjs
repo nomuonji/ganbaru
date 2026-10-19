@@ -16,6 +16,10 @@ async function main() {
   const metadataFile = option('--metadata');
   const receipt = option('--receipt');
   const format = option('--format');
+  const audience = process.env.ANIMATION_FACTORY_MADE_FOR_KIDS;
+  if (!['true', 'false'].includes(audience)) {
+    throw new Error('Explicit made-for-kids declaration is required');
+  }
   if (!mp4 || !metadataFile || !receipt || !['footage-first', 'standard'].includes(format))
     throw new Error('Require --mp4 --metadata --receipt --format=footage-first|standard');
   if ((await stat(mp4)).size <= 0) throw new Error('Empty MP4');
@@ -48,7 +52,7 @@ async function main() {
       requestBody: {
         snippet: { title: title.slice(0, 100), description: videoDescription,
           categoryId: '22', defaultLanguage: 'ja' },
-        status: { privacyStatus: 'private', selfDeclaredMadeForKids: false }
+        status: { privacyStatus: 'private', selfDeclaredMadeForKids: audience === 'true' }
       },
       media: { mimeType: 'video/mp4', body: createReadStream(mp4) }
     });

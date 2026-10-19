@@ -30,6 +30,12 @@ on:
         description: 'Named real production folder under nomuonji/animation-factory/productions'
         type: string
         required: false
+      made_for_kids:
+        description: 'YouTube audience: is this video primarily made for children?'
+        type: choice
+        required: true
+        default: "false"
+        options: ["false", "true"]
       confirm_review:
         description: 'I watched the actual video and checked the editorial content and source rights'
         type: boolean
@@ -93,6 +99,7 @@ jobs:
       PRODUCTION: ${{ inputs.production }}
       FORMAT: ${{ inputs.format }}
       ANIMATION_FACTORY_UPLOAD_MODE: private_only
+      ANIMATION_FACTORY_MADE_FOR_KIDS: ${{ inputs.made_for_kids }}
       ANIMATION_FACTORY_REVIEW_CONFIRMED: ${{ inputs.confirm_review }}
     steps:
       - uses: actions/checkout@v4
@@ -142,6 +149,31 @@ jobs:
           done
           docker logs ganbaru-voice || true
           exit 1
+      - name: Boot the TTS engine required by standard Animation Factory audio
+        if: inputs.format == 'standard'
+        shell: bash
+        run: |
+          set -euo pipefail
+          provider="$(node -p 'require("./animation-factory/productions/" + process.env.PRODUCTION + "/production.json").audio?.tts?.provider || "none"')"
+          if [ "$provider" = "none" ]; then exit 0; fi
+          if [ "$provider" != "voicevox" ] && [ "$provider" != "voicevox-nemo" ]; then
+            echo "Unsupported standard production TTS provider: $provider" >&2
+            exit 2
+          fi
+          image=voicevox/voicevox_engine:cpu-latest
+          port=50021
+          if [ "$provider" = "voicevox-nemo" ]; then
+            image=voicevox/voicevox_nemo_engine:cpu-latest
+            port=50121
+          fi
+          docker pull "$image"
+          docker run -d --rm --name ganbaru-standard-voice -p "127.0.0.1:50021:$port" "$image"
+          for i in {1..90}; do
+            if curl -fsS http://127.0.0.1:50021/version >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          docker logs ganbaru-standard-voice || true
+          exit 1
       - name: Render reviewed real moving-footage production
         if: inputs.format == 'footage-first'
         working-directory: animation-factory
@@ -164,6 +196,7 @@ jobs:
           npx playwright install --with-deps chromium
           node tools/validate-production.mjs "productions/$PRODUCTION/production.json"
           node tools/validate-attention.mjs "productions/$PRODUCTION/production.json"
+          node tools/fetch-licensed-photos.mjs "$PRODUCTION"
           npm run build
           npm run render -- "$PRODUCTION"
           id="$(node -p 'require("./productions/" + process.env.PRODUCTION + "/production.json").meta.id')"
