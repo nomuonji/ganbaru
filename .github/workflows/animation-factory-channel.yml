@@ -1,6 +1,11 @@
 name: Animation Factory → Today's Ganbaru (owned channel)
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/animation-factory-channel.yml'
+      - 'scripts/verify-animation-factory-channel.mjs'
+      - 'scripts/upload-animation-factory-private.mjs'
   push:
     branches: [main]
     paths:
@@ -38,7 +43,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  lint:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate publisher scripts
+        run: |
+          node --check scripts/verify-animation-factory-channel.mjs
+          node --check scripts/upload-animation-factory-private.mjs
+      - name: Validate workflow syntax
+        run: |
+          python -m pip install --quiet PyYAML
+          python -c 'import yaml; yaml.safe_load(open(".github/workflows/animation-factory-channel.yml", encoding="utf-8")); print("YAML syntax valid")'
+
   verify:
+    if: github.event_name != 'pull_request'
     name: Verify Ganbaru OAuth channel against historical published videos
     runs-on: ubuntu-latest
     timeout-minutes: 10
