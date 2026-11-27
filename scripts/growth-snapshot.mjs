@@ -33,4 +33,13 @@ async function main() {
   await writeFile('growth/public-snapshot.json',JSON.stringify(snapshot,null,2)+'\n');
   console.log('Verified public channel snapshot written; public videos: '+items.length);
 }
-main().catch(()=>{console.error('Public snapshot failed; verify OAuth, API quota and channel ownership in a private environment.');process.exitCode=1;});
+main().catch(err=>{
+  const msg=String(err?.message||'');
+  const safeLocal=/^(Missing Actions secret: YOUTUBE_[A-Z_]+|OAuth did not resolve to exactly one owned YouTube channel|Historical Ganbaru uploads were not found|OAuth channel is NOT proven to own the historical Today's Ganbaru uploads; refusing to publish|Channel mismatch|Uploads playlist missing)$/;
+  const raw=err?.response?.data?.error;
+  const reason=typeof raw==='string'?raw:raw?.errors?.[0]?.reason;
+  const safeReason=typeof reason==='string'&&/^[a-zA-Z0-9_]{1,80}$/.test(reason)?reason:'unknown';
+  const status=Number(err?.response?.status||0);
+  console.error(safeLocal.test(msg)?msg:'Public snapshot failed; HTTP '+status+' reason '+safeReason);
+  process.exitCode=1;
+});
